@@ -8,14 +8,13 @@ import (
 )
 
 func main() {
-	// Hello world, the web server
+	http.HandleFunc("/memo", MemoHandler)
 
-	helloHandler := func(w http.ResponseWriter, req *http.Request) {
-		io.WriteString(w, ReadShowTemplate("hello"))
-	}
-
-	http.HandleFunc("/hello", helloHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func MemoHandler(w http.ResponseWriter, req *http.Request) {
+	io.WriteString(w, ReadShowTemplate("memo"))
 }
 
 func ReadShowTemplate(resource string) string {
