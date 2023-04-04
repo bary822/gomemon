@@ -8,23 +8,23 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/memo", MemoHandler)
+	http.HandleFunc("/memo", memoHandler)
 
-	http.HandleFunc("/", NotFoundHandler)
+	http.HandleFunc("/", notFoundHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func MemoHandler(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, ReadTemplate("memo", "show"))
+func memoHandler(w http.ResponseWriter, req *http.Request) {
+	io.WriteString(w, readTemplate("memo", "show"))
 }
 
-func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
+func notFoundHandler(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	io.WriteString(w, ReadTemplate("error", "404"))
+	io.WriteString(w, readTemplate("error", "404"))
 }
 
-func ReadTemplate(resource string, action string) string {
+func readTemplate(resource string, action string) string {
 	html, err := os.ReadFile("templates/" + resource + "/" + action + ".html")
 
 	if err != nil {
