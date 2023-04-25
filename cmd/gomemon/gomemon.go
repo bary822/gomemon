@@ -48,6 +48,9 @@ type Memo struct {
 	Content string
 }
 
+// fetch memo by id from mongodb
+// if memo not found, return error
+// if memo found, return memo
 func fetchMemoById(memoID MemoID) (Memo, error) {
 	memoFixtures := []Memo{
 		{
@@ -82,7 +85,7 @@ func notFoundHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func readTemplate(resource string, action string) *template.Template {
-	t := template.Must(template.ParseFiles("templates/" + resource + "/" + action + ".html"))
+	t := template.Must(template.ParseFiles("../../web/template/" + resource + "/" + action + ".html"))
 
 	return t
 }
