@@ -1,13 +1,20 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+const uri = "mongodb://root:password@localhost:27017"
 
 func main() {
 	http.HandleFunc("/memo/", memoHandler)
@@ -52,31 +59,31 @@ type Memo struct {
 // if memo not found, return error
 // if memo found, return memo
 func fetchMemoById(memoID MemoID) (Memo, error) {
-	memoFixtures := []Memo{
-		{
-			ID:      1,
-			Title:   "Grocery List",
-			Content: "Milk, Bread, Eggs",
-		},
-		{
-			ID:      2,
-			Title:   "Meeting Notes",
-			Content: "Reviewed project timeline and goals",
-		},
-		{
-			ID:      3,
-			Title:   "Vacation Ideas",
-			Content: "Beach trip to Hawaii or ski trip to Aspen",
-		},
-	}
+	clientOptions := options.Client().ApplyURI(uri)
 
-	for _, memo := range memoFixtures {
-		if memo.ID == memoID {
-			return memo, nil
+	client, err := mongo.Connect(context.Background(), clientOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(context.Background())
+
+	db := client.Database("mydb")
+	memosCollection := db.Collection("memos")
+	filter := bson.D{{"id", memoID}}
+
+	var memo Memo
+	err = memosCollection.FindOne(context.Background(), filter).Decode(&memo)
+	if err != nil {
+		// ErrNoDocuments means that the filter did not match any documents in
+		// the collection.
+		if err == mongo.ErrNoDocuments {
+			return Memo{}, fmt.Errorf("Memo with ID %d not found", memoID)
 		}
+		log.Fatal(err)
+		return Memo{}, fmt.Errorf("Internal server error")
 	}
 
-	return Memo{}, fmt.Errorf("Memo with ID %d not found", memoID)
+	return memo, nil
 }
 
 func notFoundHandler(w http.ResponseWriter, req *http.Request) {
